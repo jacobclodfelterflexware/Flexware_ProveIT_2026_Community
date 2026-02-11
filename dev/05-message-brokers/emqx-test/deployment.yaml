@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emqx-broker
+  namespace: emqx-test
+  labels:
+    app: emqx
+    component: broker-test
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: emqx
+      component: broker-test
+  template:
+    metadata:
+      labels:
+        app: emqx
+        component: broker-test
+        environment: dev
+    spec:
+      containers:
+      - name: emqx
+        image: emqx/emqx:5.8.3
+        ports:
+        - name: mqtt
+          containerPort: YOUR_MQTT_PORT
+          protocol: TCP
+        - name: mqtts
+          containerPort: YOUR_MQTT_SSL_PORT
+          protocol: TCP
+        - name: ws
+          containerPort: YOUR_MQTT_WS_PORT
+          protocol: TCP
+        - name: wss
+          containerPort: YOUR_MQTT_WSS_PORT
+          protocol: TCP
+        - name: dashboard
+          containerPort: YOUR_EMQX_DASHBOARD_PORT
+          protocol: TCP
+        env:
+        - name: EMQX_NAME
+          value: "emqx-test"
+        - name: EMQX_HOST
+          value: "127.0.0.1"
+        - name: EMQX_CLUSTER__DISCOVERY_STRATEGY
+          value: "static"
+        - name: EMQX_CLUSTER__STATIC__SEEDS
+          value: "[]"
+        - name: EMQX_DASHBOARD__DEFAULT_USERNAME
+          value: "YOUR_EMQX_DASHBOARD_USERNAME"
+        - name: EMQX_DASHBOARD__DEFAULT_PASSWORD
+          value: "YOUR_EMQX_DASHBOARD_PASSWORD"
+        - name: EMQX_LISTENERS__TCP__DEFAULT__BIND
+          value: "YOUR_MQTT_PORT"
+        - name: EMQX_LISTENERS__SSL__DEFAULT__BIND
+          value: "YOUR_MQTT_SSL_PORT"
+        - name: EMQX_LISTENERS__WS__DEFAULT__BIND
+          value: "YOUR_MQTT_WS_PORT"
+        - name: EMQX_LISTENERS__WSS__DEFAULT__BIND
+          value: "YOUR_MQTT_WSS_PORT"
+        - name: EMQX_AUTHORIZATION__NO_MATCH
+          value: "allow"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: YOUR_EMQX_DASHBOARD_PORT
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: YOUR_EMQX_DASHBOARD_PORT
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3

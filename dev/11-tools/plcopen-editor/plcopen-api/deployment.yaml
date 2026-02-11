@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plcopen-api
+  namespace: backend-apis
+  labels:
+    app: plcopen-api
+    component: api
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plcopen-api
+  template:
+    metadata:
+      labels:
+        app: plcopen-api
+        component: api
+        environment: dev
+    spec:
+      containers:
+        - name: plcopen-api
+          image: localhost:5000/plcopen-api:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: YOUR_API_PORT
+              protocol: TCP
+          env:
+            - name: API_HOST
+              value: "0.0.0.0"
+            - name: API_PORT
+              value: "YOUR_API_PORT"
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: CORS_ORIGINS
+              value: "*"
+            - name: VALIDATE_SCHEMA
+              value: "false"
+            - name: MAX_XML_SIZE_MB
+              value: "10"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: YOUR_API_PORT
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: YOUR_API_PORT
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3

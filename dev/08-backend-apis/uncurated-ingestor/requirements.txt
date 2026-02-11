@@ -1,0 +1,9 @@
+aiomqtt==2.0.0
+neo4j==5.15.0
+aiohttp==3.9.0
+sentence-transformers>=2.7.0
+torch>=2.0.0
+numpy>=1.24.0
+huggingface-hub>=0.23.0
+optimum[onnxruntime]>=1.16.0
+onnxruntime>=1.16.0

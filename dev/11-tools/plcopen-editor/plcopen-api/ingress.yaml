@@ -1,0 +1,17 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: plcopen-api
+  namespace: backend-apis
+  labels:
+    app: plcopen-api
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: PathPrefix(`/api/plcopen`)
+      kind: Rule
+      services:
+        - name: plcopen-api
+          port: YOUR_API_PORT

@@ -1,0 +1,39 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: mqtt-topic-tree
+  namespace: frontends
+  labels:
+    app: mqtt-topic-tree
+    component: frontend
+spec:
+  entryPoints:
+    - web  # Change this to your custom entry point if needed
+  routes:
+  - match: PathPrefix(`/`)
+    kind: Rule
+    services:
+    - name: mqtt-topic-tree
+      port: YOUR_FRONTEND_PORT
+
+---
+# Alternative NodePort service for direct access during development
+apiVersion: v1
+kind: Service
+metadata:
+  name: mqtt-topic-tree-nodeport
+  namespace: frontends
+  labels:
+    app: mqtt-topic-tree
+    component: frontend
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: YOUR_FRONTEND_PORT
+    targetPort: YOUR_FRONTEND_PORT
+    protocol: TCP
+    nodePort: 30800  # Access via http://<node-ip>:30800
+  selector:
+    app: mqtt-topic-tree
+    component: frontend

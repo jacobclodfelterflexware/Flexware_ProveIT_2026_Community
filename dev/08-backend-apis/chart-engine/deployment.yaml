@@ -1,0 +1,89 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chart-engine
+  namespace: backend-apis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chart-engine
+  template:
+    metadata:
+      labels:
+        app: chart-engine
+    spec:
+      containers:
+        - name: chart-engine
+          image: localhost:5000/chart-engine:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: YOUR_API_PORT_3
+          env:
+            # OpenAI (reuse existing secret)
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-credentials
+                  key: api-key
+            - name: OPENAI_MODEL
+              value: "gpt-4o-mini"
+
+            # Neo4j
+            - name: NEO4J_URI
+              value: "bolt://YOUR_NEO4J_HOST:YOUR_NEO4J_BOLT_PORT"
+            - name: NEO4J_USER
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-credentials
+                  key: username
+            - name: NEO4J_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-credentials
+                  key: password
+
+            # Uncurated Ingestor (for RAG)
+            - name: INGESTOR_URL
+              value: "http://unYOUR_CURATED_INGESTOR_HOST:YOUR_API_PORT"
+
+            # Service config
+            - name: PORT
+              value: "YOUR_API_PORT_3"
+            - name: ENV
+              value: "production"
+
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: YOUR_API_PORT_3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: YOUR_API_PORT_3
+            initialDelaySeconds: 30
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chart-engine
+  namespace: backend-apis
+spec:
+  selector:
+    app: chart-engine
+  ports:
+    - port: YOUR_API_PORT_3
+      targetPort: YOUR_API_PORT_3

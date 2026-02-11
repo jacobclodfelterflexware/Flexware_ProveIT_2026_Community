@@ -1,0 +1,146 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vf-publisher
+  namespace: services
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: vf-publisher-reader
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "nodes", "namespaces"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods", "nodes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vf-publisher-reader-binding
+subjects:
+  - kind: ServiceAccount
+    name: vf-publisher
+    namespace: services
+roleRef:
+  kind: ClusterRole
+  name: vf-publisher-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: virtual-factory-publisher
+  namespace: services
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: virtual-factory-publisher
+  template:
+    metadata:
+      labels:
+        app: virtual-factory-publisher
+    spec:
+      serviceAccountName: vf-publisher
+      containers:
+        - name: publisher
+          image: localhost:5000/virtual-factory-publisher:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: YOUR_API_PORT
+              name: health
+          env:
+            # MQTT Curated Broker
+            - name: MQTT_BROKER_HOST
+              value: "YOUR_MQTT_CURATED_HOST"
+            - name: MQTT_BROKER_PORT
+              value: "YOUR_MQTT_PORT"
+
+            # MQTT Auth
+            - name: MQTT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mqtt-credentials
+                  key: username
+            - name: MQTT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mqtt-credentials
+                  key: password
+
+            # Neo4j
+            - name: NEO4J_URI
+              value: "bolt://YOUR_NEO4J_HOST:YOUR_NEO4J_BOLT_PORT"
+            - name: NEO4J_USER
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-credentials
+                  key: username
+            - name: NEO4J_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-credentials
+                  key: password
+
+            # EMQX REST API
+            - name: EMQX_API_HOST
+              value: "YOUR_MQTT_CURATED_HOST"
+            - name: EMQX_API_PORT
+              value: "YOUR_EMQX_DASHBOARD_PORT"
+            - name: EMQX_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: emqx-api-credentials
+                  key: api-key
+            - name: EMQX_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: emqx-api-credentials
+                  key: api-secret
+
+            # Topic prefix
+            - name: TOPIC_PREFIX
+              value: "VirtualFactory2.0"
+
+            # Logging
+            - name: LOG_LEVEL
+              value: "INFO"
+
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: YOUR_API_PORT
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: YOUR_API_PORT
+            initialDelaySeconds: 30
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: virtual-factory-publisher
+  namespace: services
+spec:
+  selector:
+    app: virtual-factory-publisher
+  ports:
+    - name: health
+      port: YOUR_API_PORT
+      targetPort: YOUR_API_PORT

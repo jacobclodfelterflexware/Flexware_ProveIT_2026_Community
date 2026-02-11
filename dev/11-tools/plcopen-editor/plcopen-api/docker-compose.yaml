@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  plcopen-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: plcopen-api:latest
+    container_name: plcopen-api
+    ports:
+      - "8080:YOUR_API_PORT"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=YOUR_API_PORT
+      - LOG_LEVEL=INFO
+      - CORS_ORIGINS=*
+      - VALIDATE_SCHEMA=false
+      - MAX_XML_SIZE_MB=10
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:YOUR_API_PORT/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped

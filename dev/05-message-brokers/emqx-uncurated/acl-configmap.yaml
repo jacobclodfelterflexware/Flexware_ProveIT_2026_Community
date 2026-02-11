@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: emqx-acl
+  namespace: emqx-uncurated
+data:
+  acl.conf: |
+    %% Allow dashboard user to subscribe to system topics
+    {allow, {username, {re, "^dashboard$"}}, subscribe, ["$SYS/#"]}.
+
+    %% Allow localhost full access
+    {allow, {ipaddr, "127.0.0.1"}, all, ["$SYS/#", "#"]}.
+
+    %% Allow uncurated-ingestor client to subscribe to all topics (wildcard)
+    {allow, {clientid, "uncurated-ingestor"}, subscribe, [{eq, "#"}]}.
+
+    %% Allow curated-republisher to subscribe to all topics (wildcard)
+    {allow, {clientid, "curated-republisher-sub"}, subscribe, [{eq, "#"}]}.
+
+    %% Allow mqtt-topic-tree frontend to subscribe to all topics (wildcard)
+    {allow, {clientid, {re, "^mqtt-topic-tree-"}}, subscribe, [{eq, "#"}]}.
+
+    %% Deny other clients from wildcard subscriptions
+    {deny, all, subscribe, ["$SYS/#", {eq, "#"}, {eq, "+/#"}]}.
+
+    %% Allow all other pub/sub operations
+    {allow, all}.

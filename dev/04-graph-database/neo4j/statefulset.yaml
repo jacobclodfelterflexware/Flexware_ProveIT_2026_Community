@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: neo4j
+  namespace: neo4j
+  labels:
+    app: neo4j
+    component: graph-database
+spec:
+  serviceName: neo4j
+  replicas: 1
+  selector:
+    matchLabels:
+      app: neo4j
+  template:
+    metadata:
+      labels:
+        app: neo4j
+        component: graph-database
+    spec:
+      containers:
+        - name: neo4j
+          image: neo4j:5.15.0-enterprise
+          ports:
+            - containerPort: YOUR_NEO4J_HTTP_PORT
+              name: http
+            - containerPort: YOUR_NEO4J_BOLT_PORT
+              name: bolt
+          envFrom:
+            - configMapRef:
+                name: neo4j-config
+            - secretRef:
+                name: neo4j-auth
+          env:
+            - name: NEO4J_ACCEPT_LICENSE_AGREEMENT
+              value: "yes"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "1000m"
+            limits:
+              memory: "8Gi"
+              cpu: "2000m"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: YOUR_NEO4J_HTTP_PORT
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: YOUR_NEO4J_HTTP_PORT
+            initialDelaySeconds: 60
+            periodSeconds: 30
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: neo4j-data

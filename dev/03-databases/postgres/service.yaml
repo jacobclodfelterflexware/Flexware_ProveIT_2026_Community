@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-database
+  namespace: postgres
+  labels:
+    app: postgres
+    component: database
+spec:
+  type: ClusterIP
+  ports:
+  - name: postgres
+    port: YOUR_POSTGRES_PORT
+    targetPort: YOUR_POSTGRES_PORT
+    protocol: TCP
+  selector:
+    app: postgres
+    component: database

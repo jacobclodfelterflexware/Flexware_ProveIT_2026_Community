@@ -1,0 +1,28 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-emqx-prefix
+  namespace: frontends
+spec:
+  stripPrefix:
+    prefixes:
+      - /emqx
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: emqx-proxy
+  namespace: frontends
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: PathPrefix(`/emqx`)
+      kind: Rule
+      services:
+        - name: emqx-broker
+          namespace: emqx-uncurated
+          port: YOUR_EMQX_DASHBOARD_PORT
+      middlewares:
+        - name: strip-emqx-prefix
+          namespace: frontends

@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ignition-gateway
+  namespace: ignition
+  labels:
+    app: ignition
+    component: gateway-primary
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ignition
+      component: gateway-primary
+  template:
+    metadata:
+      labels:
+        app: ignition
+        component: gateway-primary
+        environment: dev
+    spec:
+      initContainers:
+      - name: data-seed
+        image: inductiveautomation/ignition:8.1.44
+        command: ['sh', '-c', 'if [ ! -f /data/gateway.xml_clean ]; then cp -r /usr/local/bin/ignition/data/* /data/; fi']
+        volumeMounts:
+        - name: ignition-data
+          mountPath: /data
+      containers:
+      - name: ignition
+        image: inductiveautomation/ignition:8.1.44
+        ports:
+        - name: http
+          containerPort: 8088
+          protocol: TCP
+        - name: https
+          containerPort: YOUR_IGNITION_HTTPS_PORT
+          protocol: TCP
+        - name: gateway-network
+          containerPort: YOUR_IGNITION_GAN_PORT
+          protocol: TCP
+        env:
+        - name: ACCEPT_IGNITION_EULA
+          value: "Y"
+        - name: GATEWAY_ADMIN_PASSWORD
+          value: "YOUR_IGNITION_ADMIN_PASSWORD"
+        - name: IGNITION_EDITION
+          value: "standard"
+        volumeMounts:
+        - name: ignition-data
+          mountPath: /usr/local/bin/ignition/data
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /StatusPing
+            port: 8088
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /StatusPing
+            port: 8088
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      volumes:
+      - name: ignition-data
+        persistentVolumeClaim:
+          claimName: ignition-data

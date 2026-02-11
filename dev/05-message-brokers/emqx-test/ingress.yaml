@@ -1,0 +1,91 @@
+---
+# IngressRouteTCP for MQTT (standard) - Port 1885
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: emqx-mqtt
+  namespace: emqx-test
+  labels:
+    app: emqx
+    component: broker-test
+spec:
+  entryPoints:
+    - mqtt-test
+  routes:
+  - match: HostSNI(`*`)
+    services:
+    - name: emqx-broker
+      port: YOUR_MQTT_PORT
+---
+# IngressRouteTCP for MQTT over TLS - Port 8885
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: emqx-mqtts
+  namespace: emqx-test
+  labels:
+    app: emqx
+    component: broker-test
+spec:
+  entryPoints:
+    - mqtts-test
+  routes:
+  - match: HostSNI(`*`)
+    services:
+    - name: emqx-broker
+      port: YOUR_MQTT_SSL_PORT
+---
+# IngressRouteTCP for MQTT over WebSocket - Port 8087
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: emqx-ws
+  namespace: emqx-test
+  labels:
+    app: emqx
+    component: broker-test
+spec:
+  entryPoints:
+    - mqtt-ws-test
+  routes:
+  - match: HostSNI(`*`)
+    services:
+    - name: emqx-broker
+      port: YOUR_MQTT_WS_PORT
+---
+# IngressRouteTCP for MQTT over WSS - Port 8091
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: emqx-wss
+  namespace: emqx-test
+  labels:
+    app: emqx
+    component: broker-test
+spec:
+  entryPoints:
+    - mqtt-wss-test
+  routes:
+  - match: HostSNI(`*`)
+    services:
+    - name: emqx-broker
+      port: YOUR_MQTT_WSS_PORT
+---
+# IngressRoute for Dashboard (HTTP) - Port 18085
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: emqx-dashboard
+  namespace: emqx-test
+  labels:
+    app: emqx
+    component: broker-test
+spec:
+  entryPoints:
+    - emqx-test
+  routes:
+  - match: PathPrefix(`/`)
+    kind: Rule
+    services:
+    - name: emqx-broker
+      port: YOUR_EMQX_DASHBOARD_PORT

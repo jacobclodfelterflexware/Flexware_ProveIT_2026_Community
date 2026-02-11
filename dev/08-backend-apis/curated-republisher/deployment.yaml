@@ -1,0 +1,116 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: curated-republisher
+  namespace: services
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: curated-republisher
+  template:
+    metadata:
+      labels:
+        app: curated-republisher
+    spec:
+      containers:
+        - name: republisher
+          image: YOUR_REGISTRY:5000/curated-republisher:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: YOUR_API_PORT
+              name: health
+          env:
+            # MQTT Uncurated
+            - name: MQTT_BROKER_UNCURATED_HOST
+              value: "YOUR_MQTT_UNCURATED_HOST"
+            - name: MQTT_BROKER_UNCURATED_PORT
+              value: "YOUR_MQTT_PORT"
+
+            # MQTT Curated
+            - name: MQTT_BROKER_CURATED_HOST
+              value: "YOUR_MQTT_CURATED_HOST"
+            - name: MQTT_BROKER_CURATED_PORT
+              value: "YOUR_MQTT_PORT"
+
+            # MQTT Auth
+            - name: MQTT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mqtt-credentials
+                  key: username
+            - name: MQTT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mqtt-credentials
+                  key: password
+
+            # Neo4j
+            - name: NEO4J_URI
+              value: "bolt://YOUR_NEO4J_HOST:YOUR_NEO4J_BOLT_PORT"
+            - name: NEO4J_USER
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-credentials
+                  key: username
+            - name: NEO4J_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-credentials
+                  key: password
+
+            # Features
+            - name: WRITE_TO_NEO4J
+              value: "true"
+            - name: CREATE_LINEAGE
+              value: "true"
+
+            # Logging
+            - name: LOG_LEVEL
+              value: "INFO"
+
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: YOUR_API_PORT
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: YOUR_API_PORT
+            initialDelaySeconds: 60
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: curated-republisher
+  namespace: services
+spec:
+  selector:
+    app: curated-republisher
+  ports:
+    - name: health
+      port: YOUR_API_PORT
+      targetPort: YOUR_API_PORT
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mqtt-credentials
+  namespace: services
+type: Opaque
+stringData:
+  username: "YOUR_MQTT_USERNAME"
+  password: "YOUR_MQTT_PASSWORD"

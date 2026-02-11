@@ -1,0 +1,91 @@
+---
+# IngressRouteTCP for MQTT (standard)
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: emqx-mqtt
+  namespace: emqx-uncurated
+  labels:
+    app: emqx
+    component: broker-uncurated
+spec:
+  entryPoints:
+    - mqtt-uncurated
+  routes:
+  - match: HostSNI(`*`)
+    services:
+    - name: emqx-broker
+      port: YOUR_MQTT_PORT
+---
+# IngressRouteTCP for MQTT over TLS
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: emqx-mqtts
+  namespace: emqx-uncurated
+  labels:
+    app: emqx
+    component: broker-uncurated
+spec:
+  entryPoints:
+    - mqtts-uncurated
+  routes:
+  - match: HostSNI(`*`)
+    services:
+    - name: emqx-broker
+      port: YOUR_MQTT_SSL_PORT
+---
+# IngressRouteTCP for MQTT over WebSocket
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: emqx-ws
+  namespace: emqx-uncurated
+  labels:
+    app: emqx
+    component: broker-uncurated
+spec:
+  entryPoints:
+    - mqtt-ws-uncurated
+  routes:
+  - match: HostSNI(`*`)
+    services:
+    - name: emqx-broker
+      port: YOUR_MQTT_WS_PORT
+---
+# IngressRouteTCP for MQTT over WSS
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: emqx-wss
+  namespace: emqx-uncurated
+  labels:
+    app: emqx
+    component: broker-uncurated
+spec:
+  entryPoints:
+    - mqtt-wss-uncurated
+  routes:
+  - match: HostSNI(`*`)
+    services:
+    - name: emqx-broker
+      port: YOUR_MQTT_WSS_PORT
+---
+# IngressRoute for Dashboard (HTTP)
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: emqx-dashboard
+  namespace: emqx-uncurated
+  labels:
+    app: emqx
+    component: broker-uncurated
+spec:
+  entryPoints:
+    - emqx-uncurated
+  routes:
+  - match: PathPrefix(`/`)
+    kind: Rule
+    services:
+    - name: emqx-broker
+      port: YOUR_EMQX_DASHBOARD_PORT

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: plcopen-api
+  namespace: backend-apis
+  labels:
+    app: plcopen-api
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: YOUR_API_PORT
+      targetPort: YOUR_API_PORT
+      protocol: TCP
+  selector:
+    app: plcopen-api

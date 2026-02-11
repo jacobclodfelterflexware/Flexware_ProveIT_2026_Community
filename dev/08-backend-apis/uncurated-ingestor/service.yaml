@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: uncurated-ingestor
+  namespace: services
+  labels:
+    app: uncurated-ingestor
+spec:
+  selector:
+    app: uncurated-ingestor
+  ports:
+    - name: health
+      port: YOUR_API_PORT
+      targetPort: YOUR_API_PORT

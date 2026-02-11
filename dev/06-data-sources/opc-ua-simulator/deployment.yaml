@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opc-ua-simulator
+  namespace: data-sources
+  labels:
+    app: opc-ua-simulator
+    component: data-source
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opc-ua-simulator
+      component: data-source
+  template:
+    metadata:
+      labels:
+        app: opc-ua-simulator
+        component: data-source
+        environment: dev
+    spec:
+      containers:
+      - name: opc-ua-simulator
+        image: YOUR_REGISTRY:5000/opc-ua-simulator:latest
+        ports:
+        - name: opcua
+          containerPort: YOUR_OPCUA_PORT
+          protocol: TCP
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          tcpSocket:
+            port: YOUR_OPCUA_PORT
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: YOUR_OPCUA_PORT
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
