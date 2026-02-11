@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: machine-simulator
+  namespace: services
+  labels:
+    app: machine-simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: machine-simulator
+  template:
+    metadata:
+      labels:
+        app: machine-simulator
+    spec:
+      containers:
+        - name: machine-simulator
+          image: localhost:5000/machine-simulator:latest
+          ports:
+            - containerPort: YOUR_API_PORT_3
+          env:
+            - name: NEO4J_URI
+              value: "bolt://YOUR_NEO4J_HOST:YOUR_NEO4J_BOLT_PORT"
+            - name: NEO4J_USER
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-credentials
+                  key: username
+            - name: NEO4J_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-credentials
+                  key: password
+            - name: MQTT_HOST
+              value: "YOUR_MQTT_CURATED_HOST"
+            - name: MQTT_PORT
+              value: "YOUR_MQTT_PORT"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-credentials
+                  key: api-key
+            - name: LLM_MODEL
+              value: "gpt-4o-mini"
+            - name: IMAGE_MODEL
+              value: "dall-e-3"
+            - name: SCHEMA_SIMILARITY_THRESHOLD
+              value: "0.5"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: YOUR_API_PORT_3
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: YOUR_API_PORT_3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: machine-simulator
+  namespace: services
+  labels:
+    app: machine-simulator
+spec:
+  selector:
+    app: machine-simulator
+  ports:
+    - port: YOUR_API_PORT_3
+      targetPort: YOUR_API_PORT_3
+      protocol: TCP
+  type: ClusterIP

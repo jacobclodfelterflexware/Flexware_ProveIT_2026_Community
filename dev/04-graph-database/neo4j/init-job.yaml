@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: neo4j-init-schema
+  namespace: neo4j
+  labels:
+    app: neo4j
+    component: schema-init
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app: neo4j
+        component: schema-init
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init
+          image: neo4j:5.15.0
+          command: ["cypher-shell"]
+          args:
+            - "-a"
+            - "bolt://YOUR_NEO4J_HOST:YOUR_NEO4J_BOLT_PORT"
+            - "-u"
+            - "neo4j"
+            - "-p"
+            - "$(NEO4J_PASSWORD)"
+            - "-f"
+            - "/scripts/init.cypher"
+          env:
+            - name: NEO4J_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-auth
+                  key: NEO4J_PASSWORD
+          volumeMounts:
+            - name: init-scripts
+              mountPath: /scripts
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: neo4j-init-scripts

@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-server
+  namespace: backend-apis
+  labels:
+    app: mcp-server
+    component: mcp
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-server
+      component: mcp
+  template:
+    metadata:
+      labels:
+        app: mcp-server
+        component: mcp
+        environment: dev
+    spec:
+      containers:
+      - name: mcp-server
+        image: YOUR_REGISTRY:5000/mcp-server:latest
+        imagePullPolicy: Always
+        ports:
+        - name: mcp
+          containerPort: YOUR_API_PORT
+          protocol: TCP
+        - name: rest
+          containerPort: 8081
+          protocol: TCP
+        env:
+        # MCP Server Configuration
+        - name: MCP_TRANSPORT
+          value: "http"
+        - name: MCP_HOST
+          value: "0.0.0.0"
+        - name: MCP_PORT
+          value: "YOUR_API_PORT"
+        - name: REST_API_PORT
+          value: "8081"
+        # Backend Service URLs
+        - name: MIDDLEWARE_URL
+          value: "http://YOUR_K8S_SERVICE_HOST:YOUR_API_PORT"
+        - name: INGESTOR_URL
+          value: "http://YOUR_UNCURATED_INGESTOR_HOST:YOUR_API_PORT"
+        # Timeouts
+        - name: MIDDLEWARE_TIMEOUT
+          value: "30.0"
+        - name: INGESTOR_TIMEOUT
+          value: "30.0"
+        # PostgreSQL (direct access for topic mappings)
+        - name: POSTGRES_HOST
+          value: "YOUR_POSTGRES_HOST"
+        - name: POSTGRES_PORT
+          value: "YOUR_POSTGRES_PORT"
+        - name: POSTGRES_DB
+          value: "postgres"
+        - name: POSTGRES_USER
+          value: "YOUR_DB_USERNAME"
+        - name: POSTGRES_PASS
+          value: "YOUR_DB_PASSWORD"
+        - name: POSTGRES_SCHEMA
+          value: "middleware"
+        # Logging
+        - name: LOG_LEVEL
+          value: "INFO"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        readinessProbe:
+          tcpSocket:
+            port: YOUR_API_PORT
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          tcpSocket:
+            port: YOUR_API_PORT
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3

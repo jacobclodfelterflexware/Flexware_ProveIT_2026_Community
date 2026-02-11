@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ignition-gateway
+  namespace: ignition
+  labels:
+    app: ignition
+    component: gateway-primary
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8088
+    targetPort: 8088
+    protocol: TCP
+  - name: https
+    port: YOUR_IGNITION_HTTPS_PORT
+    targetPort: YOUR_IGNITION_HTTPS_PORT
+    protocol: TCP
+  - name: gateway-network
+    port: YOUR_IGNITION_GAN_PORT
+    targetPort: YOUR_IGNITION_GAN_PORT
+    protocol: TCP
+  selector:
+    app: ignition
+    component: gateway-primary

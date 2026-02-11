@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mqtt-topic-tree
+  namespace: frontends
+  labels:
+    app: mqtt-topic-tree
+    component: frontend
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mqtt-topic-tree
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: mqtt-topic-tree
+        component: frontend
+        environment: dev
+    spec:
+      containers:
+      - name: mqtt-topic-tree
+        image: YOUR_REGISTRY:5000/mqtt-topic-tree:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: YOUR_FRONTEND_PORT
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: MQTT_BROKER_WS_URL
+          value: "ws://YOUR_MQTT_UNCURATED_HOST:YOUR_MQTT_WS_PORT/mqtt"
+        - name: MQTT_USERNAME
+          value: "YOUR_MQTT_USERNAME"
+        - name: MQTT_PASSWORD
+          value: "YOUR_MQTT_PASSWORD"
+        - name: PORT
+          value: "YOUR_FRONTEND_PORT"
+        - name: HOSTNAME
+          value: "0.0.0.0"
+        # HITL API URL for server-side proxy
+        - name: HITL_API_URL
+          value: "http://YOUR_HITL_API_HOST:YOUR_API_PORT"
+        # Neo4j connection for graph visualization
+        - name: NEO4J_URI
+          value: "bolt://YOUR_NEO4J_HOST:YOUR_NEO4J_BOLT_PORT"
+        - name: NEO4J_USER
+          value: "neo4j"
+        - name: NEO4J_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: neo4j-auth
+              key: NEO4J_PASSWORD
+        # EMQX Dashboard URLs for iframe embedding (via Traefik)
+        - name: NEXT_PUBLIC_EMQX_DASHBOARD_URL
+          value: "http://YOUR_HOSTNAME:YOUR_EMQX_DASHBOARD_PORT_2"
+        - name: NEXT_PUBLIC_EMQX_CURATED_URL
+          value: "http://YOUR_HOSTNAME:YOUR_EMQX_DASHBOARD_PORT"
+        # Neo4j Browser URL
+        - name: NEXT_PUBLIC_NEO4J_BROWSER_URL
+          value: "http://YOUR_HOSTNAME:YOUR_NEO4J_NODEPORT"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: YOUR_FRONTEND_PORT
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: YOUR_FRONTEND_PORT
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3

@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-predictor
+  namespace: backend-apis
+  labels:
+    app: ml-predictor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ml-predictor
+  template:
+    metadata:
+      labels:
+        app: ml-predictor
+    spec:
+      containers:
+        - name: ml-predictor
+          image: localhost:5000/ml-predictor:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: YOUR_API_PORT_3
+              name: http
+          env:
+            - name: NEO4J_URI
+              value: "bolt://YOUR_NEO4J_HOST:YOUR_NEO4J_BOLT_PORT"
+            - name: NEO4J_USER
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-credentials
+                  key: username
+                  optional: true
+            - name: NEO4J_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-credentials
+                  key: password
+                  optional: true
+            - name: MACHINE_SIMULATOR_URL
+              value: "http://YOUR_MACHINE_SIMULATOR_HOST:YOUR_API_PORT_3"
+            - name: TRAINING_TIME_LIMIT
+              value: "300"
+            - name: MIN_DATA_POINTS
+              value: "30"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-credentials
+                  key: api-key
+            - name: OPENAI_MODEL
+              value: "gpt-4o-mini"
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: YOUR_API_PORT_3
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: YOUR_API_PORT_3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5

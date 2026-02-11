@@ -1,0 +1,14 @@
+# HITL API dependencies
+
+# Web framework
+aiohttp>=3.9.0
+aiohttp-cors>=0.7.0
+
+# Neo4j driver
+neo4j>=5.15.0
+
+# Data validation
+pydantic>=2.0.0
+
+# Environment variable loading
+python-dotenv>=1.0.0

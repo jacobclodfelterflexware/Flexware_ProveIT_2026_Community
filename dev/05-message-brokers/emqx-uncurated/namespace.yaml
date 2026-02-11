@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: emqx-uncurated
+  labels:
+    name: emqx-uncurated
+    environment: dev

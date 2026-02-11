@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: curated-ingestor
+  namespace: services
+  labels:
+    app: curated-ingestor
+    component: ingestion
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: curated-ingestor
+  template:
+    metadata:
+      labels:
+        app: curated-ingestor
+        component: ingestion
+    spec:
+      containers:
+        - name: ingestor
+          image: YOUR_REGISTRY:5000/uncurated-ingestor:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: YOUR_API_PORT
+              name: health
+          env:
+            # MQTT - Curated Broker
+            - name: MQTT_BROKER_UNCURATED_HOST
+              value: "YOUR_MQTT_CURATED_HOST"
+            - name: MQTT_BROKER_UNCURATED_PORT
+              value: "YOUR_MQTT_PORT"
+            - name: MQTT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mqtt-credentials
+                  key: username
+            - name: MQTT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mqtt-credentials
+                  key: password
+
+            # Neo4j
+            - name: NEO4J_URI
+              value: "bolt://YOUR_NEO4J_HOST:YOUR_NEO4J_BOLT_PORT"
+            - name: NEO4J_USER
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-credentials
+                  key: username
+            - name: NEO4J_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-credentials
+                  key: password
+
+            # Embedding
+            - name: EMBEDDING_PROVIDER
+              value: "local"
+            - name: EMBEDDING_MODEL
+              value: "all-MiniLM-L6-v2"
+
+            # Retention
+            - name: MESSAGE_RETENTION_HOURS
+              value: "24"
+            - name: CLEANUP_INTERVAL_MINUTES
+              value: "5"
+
+            # Performance
+            - name: BATCH_SIZE
+              value: "10"
+            - name: BATCH_TIMEOUT_MS
+              value: "100"
+
+            # Logging
+            - name: LOG_LEVEL
+              value: "INFO"
+
+            # Broker identification
+            - name: BROKER_NAME
+              value: "curated"
+
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: YOUR_API_PORT
+            initialDelaySeconds: 60
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: YOUR_API_PORT
+            initialDelaySeconds: 90
+            periodSeconds: 30
+
+          volumeMounts:
+            - name: model-cache
+              mountPath: /home/appuser/.cache
+
+      volumes:
+        - name: model-cache
+          emptyDir: {}

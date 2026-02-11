@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openplc-runtime
+  namespace: openplc
+  labels:
+    app: openplc-runtime
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openplc-runtime
+  template:
+    metadata:
+      labels:
+        app: openplc-runtime
+    spec:
+      containers:
+        - name: openplc
+          image: localhost:5000/openplc-runtime:latest
+          imagePullPolicy: Always
+          ports:
+            - name: web
+              containerPort: YOUR_API_PORT
+            - name: modbus
+              containerPort: 502
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: YOUR_API_PORT
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: YOUR_API_PORT
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: persistent
+              mountPath: /docker_persistent
+      volumes:
+        - name: persistent
+          persistentVolumeClaim:
+            claimName: openplc-workdir

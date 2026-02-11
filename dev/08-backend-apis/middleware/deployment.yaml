@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mqtt-middleware
+  namespace: backend-apis
+  labels:
+    app: mqtt-middleware
+    component: middleware
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mqtt-middleware
+      component: middleware
+  template:
+    metadata:
+      labels:
+        app: mqtt-middleware
+        component: middleware
+        environment: dev
+    spec:
+      containers:
+      - name: middleware
+        image: mqtt-middleware:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: YOUR_API_PORT
+          protocol: TCP
+        env:
+        # MQTT Brokers
+        - name: MQTT_BROKER_UNCURATED_HOST
+          value: "YOUR_MQTT_UNCURATED_HOST"
+        - name: MQTT_BROKER_UNCURATED_PORT
+          value: "YOUR_MQTT_PORT"
+        - name: MQTT_BROKER_CURATED_HOST
+          value: "YOUR_MQTT_CURATED_HOST"
+        - name: MQTT_BROKER_CURATED_PORT
+          value: "YOUR_MQTT_PORT"
+        - name: MQTT_USERNAME
+          value: "admin"
+        - name: MQTT_PASSWORD
+          value: "public"
+        - name: MQTT_QOS
+          value: "1"
+        # PostgreSQL
+        - name: DB_HOST
+          value: "YOUR_POSTGRES_HOST"
+        - name: DB_PORT
+          value: "YOUR_POSTGRES_PORT"
+        - name: DB_NAME
+          value: "postgres"
+        - name: DB_USER
+          value: "YOUR_DB_USERNAME"
+        - name: DB_PASSWORD
+          value: "YOUR_DB_PASSWORD"
+        - name: DB_SCHEMA
+          value: "middleware"
+        # Application
+        - name: API_HOST
+          value: "0.0.0.0"
+        - name: API_PORT
+          value: "YOUR_API_PORT"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: SSE_UPDATE_INTERVAL
+          value: "2.0"
+        - name: CORS_ORIGINS
+          value: "*"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: YOUR_API_PORT
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: YOUR_API_PORT
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3

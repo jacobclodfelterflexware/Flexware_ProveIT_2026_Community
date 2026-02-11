@@ -1,0 +1,17 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: openplc-runtime
+  namespace: openplc
+  labels:
+    app: openplc-runtime
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: Host(`openplc.local`) || Host(`openplc`)
+      kind: Rule
+      services:
+        - name: openplc-runtime
+          port: YOUR_API_PORT

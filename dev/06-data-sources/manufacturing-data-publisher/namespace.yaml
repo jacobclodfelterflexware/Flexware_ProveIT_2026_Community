@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: data-sources
+  labels:
+    name: data-sources
+    environment: dev

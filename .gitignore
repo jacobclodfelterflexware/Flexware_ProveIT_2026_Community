@@ -1,0 +1,10 @@
+.next/
+node_modules/
+__pycache__/
+*.pyc
+.env
+secret.yaml
+test-results/
+playwright-report/
+*.log
+.DS_Store

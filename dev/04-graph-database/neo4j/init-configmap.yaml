@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neo4j-init-scripts
+  namespace: neo4j
+  labels:
+    app: neo4j
+    component: graph-database
+data:
+  init.cypher: |
+    // Constraints
+    CREATE CONSTRAINT topic_path_broker_unique IF NOT EXISTS
+    FOR (t:Topic) REQUIRE (t.path, t.broker, t.clientId) IS UNIQUE;
+
+    CREATE CONSTRAINT message_id_unique IF NOT EXISTS
+    FOR (m:Message) REQUIRE m.messageId IS UNIQUE;
+
+    CREATE CONSTRAINT mapping_id_unique IF NOT EXISTS
+    FOR (s:SchemaMapping) REQUIRE s.id IS UNIQUE;
+
+    // Client - represents MQTT publishing client/system
+    CREATE CONSTRAINT client_unique IF NOT EXISTS
+    FOR (c:Client) REQUIRE (c.clientId, c.broker) IS UNIQUE;
+
+    // TopicSegment - hierarchical topic tree nodes (per client)
+    CREATE CONSTRAINT topic_segment_unique IF NOT EXISTS
+    FOR (ts:TopicSegment) REQUIRE (ts.fullPath, ts.broker, ts.clientId) IS UNIQUE;
+
+    // Vector indexes (384 dimensions for sentence-transformers)
+    CREATE VECTOR INDEX topic_embeddings IF NOT EXISTS
+    FOR (t:Topic) ON (t.embedding)
+    OPTIONS {indexConfig: {`vector.dimensions`: 384, `vector.similarity_function`: 'cosine'}};
+
+    CREATE VECTOR INDEX message_embeddings IF NOT EXISTS
+    FOR (m:Message) ON (m.embedding)
+    OPTIONS {indexConfig: {`vector.dimensions`: 384, `vector.similarity_function`: 'cosine'}};
+
+    // Performance indexes
+    CREATE INDEX topic_broker_idx IF NOT EXISTS FOR (t:Topic) ON (t.broker);
+    CREATE INDEX message_timestamp_idx IF NOT EXISTS FOR (m:Message) ON (m.timestamp);
+    CREATE INDEX message_broker_idx IF NOT EXISTS FOR (m:Message) ON (m.broker);
+    CREATE INDEX mapping_status_idx IF NOT EXISTS FOR (s:SchemaMapping) ON (s.status);
+    CREATE INDEX mapping_raw_topic_idx IF NOT EXISTS FOR (s:SchemaMapping) ON (s.rawTopic);
+
+    // TopicSegment indexes
+    CREATE INDEX topic_segment_name_idx IF NOT EXISTS FOR (ts:TopicSegment) ON (ts.name);
+    CREATE INDEX topic_segment_broker_idx IF NOT EXISTS FOR (ts:TopicSegment) ON (ts.broker);
+    CREATE INDEX topic_segment_depth_idx IF NOT EXISTS FOR (ts:TopicSegment) ON (ts.depth);
+    CREATE INDEX topic_segment_client_idx IF NOT EXISTS FOR (ts:TopicSegment) ON (ts.clientId);
+
+    // Topic clientId index
+    CREATE INDEX topic_client_idx IF NOT EXISTS FOR (t:Topic) ON (t.clientId);
+
+    // Client indexes
+    CREATE INDEX client_broker_idx IF NOT EXISTS FOR (c:Client) ON (c.broker);

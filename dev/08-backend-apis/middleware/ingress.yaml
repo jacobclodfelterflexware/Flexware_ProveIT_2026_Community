@@ -1,0 +1,28 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: mqtt-middleware
+  namespace: backend-apis
+  labels:
+    app: mqtt-middleware
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: PathPrefix(`/api/middleware`)
+      kind: Rule
+      services:
+        - name: mqtt-middleware
+          port: YOUR_API_PORT
+      middlewares:
+        - name: strip-middleware-prefix
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-middleware-prefix
+  namespace: backend-apis
+spec:
+  stripPrefix:
+    prefixes:
+      - /api/middleware

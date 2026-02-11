@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.gitignore
+README.md
+DEPLOYMENT.md
+tests
+*.md
+.env*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+*.pem

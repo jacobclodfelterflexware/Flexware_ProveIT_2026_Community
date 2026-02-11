@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: neo4j
+  namespace: neo4j
+  labels:
+    app: neo4j
+    component: graph-database
+spec:
+  type: ClusterIP
+  selector:
+    app: neo4j
+  ports:
+    - name: http
+      port: YOUR_NEO4J_HTTP_PORT
+      targetPort: YOUR_NEO4J_HTTP_PORT
+    - name: bolt
+      port: YOUR_NEO4J_BOLT_PORT
+      targetPort: YOUR_NEO4J_BOLT_PORT
