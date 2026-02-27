@@ -1,3 +1,8 @@
+Please use this repository to uplift your colleagues and line side personnel.
+Do not use this repository to consolidate your own power.
+Use this repo to give yourself more autonomy to do good.
+If you make a fork I encourage you to MIT license it.
+
 # Unified Namespace (UNS) Industrial IoT Platform
 
 A Kubernetes-based industrial data platform that combines real-time MQTT telemetry, graph-based knowledge storage, LLM-powered analytics, and OEE tracking into a unified namespace architecture for smart manufacturing.
@@ -483,4 +488,4 @@ kubectl get deployments --all-namespaces
 
 ## License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License -- see the [LICENSE](LICENSE) file for details.
