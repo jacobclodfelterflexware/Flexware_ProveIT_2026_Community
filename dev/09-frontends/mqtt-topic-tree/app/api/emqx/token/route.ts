@@ -9,7 +9,7 @@ const EMQX_CREDENTIALS = {
   },
   curated: {
     url: process.env.EMQX_CURATED_API_URL || 'http://YOUR_MQTT_CURATED_HOST:YOUR_EMQX_DASHBOARD_PORT',
-    username: process.env.EMQX_CURATED_USERNAME || 'admin',
+    username: process.env.EMQX_CURATED_USERNAME || 'YOUR_EMQX_USERNAME',
     password: process.env.EMQX_CURATED_PASSWORD || 'YOUR_EMQX_PASSWORD',
   },
 };

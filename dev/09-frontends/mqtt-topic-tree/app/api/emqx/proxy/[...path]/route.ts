@@ -4,13 +4,13 @@
 const EMQX_CONFIG = {
   uncurated: {
     url: process.env.EMQX_UNCURATED_API_URL || 'http://YOUR_MQTT_UNCURATED_HOST:YOUR_EMQX_DASHBOARD_PORT',
-    username: 'admin',
-    password: 'YOUR_EMQX_PASSWORD',
+    username: process.env.EMQX_UNCURATED_USERNAME || 'YOUR_EMQX_USERNAME',
+    password: process.env.EMQX_UNCURATED_PASSWORD || 'YOUR_EMQX_PASSWORD',
   },
   curated: {
     url: process.env.EMQX_CURATED_API_URL || 'http://YOUR_MQTT_CURATED_HOST:YOUR_EMQX_DASHBOARD_PORT',
-    username: 'admin',
-    password: 'YOUR_EMQX_PASSWORD',
+    username: process.env.EMQX_CURATED_USERNAME || 'YOUR_EMQX_USERNAME',
+    password: process.env.EMQX_CURATED_PASSWORD || 'YOUR_EMQX_PASSWORD',
   },
 };
 
